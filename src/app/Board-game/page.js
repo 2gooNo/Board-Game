@@ -10,6 +10,8 @@ export default function BoardGame() {
   const [playerOneName, setPlayerOneName] = useState();
   const [effectiveCell, setEffectiveCell] = useState([]);
   const [turn, setTurn] = useState("1");
+  const [diceNumber, setDiceNumber] = useState(1);
+  const [diceNumber2, setDiceNumber2] = useState(1);
 
   function effectSell() {
     const effectiveCellArray = [];
@@ -108,6 +110,18 @@ export default function BoardGame() {
           >
             Roll Dice
           </button>
+          <div className="dice">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div
+              className="side"
+              style={{
+                backgroundColor: i + 1 === diceNumber ? "green" : "transparent",
+              }}
+            >
+              {i + 1}
+            </div>
+          ))}
+        </div>
         </div>
       </div>
       <div className="w-[50%] h-screen  pr-[100px] ">
@@ -135,6 +149,18 @@ export default function BoardGame() {
           >
             Roll Dice
           </button>
+          <div className="dice">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div
+              className="side"
+              style={{
+                backgroundColor: i + 1 === diceNumber2 ? "purple" : "transparent",
+              }}
+            >
+              {i + 1}
+            </div>
+          ))}
+        </div>
         </div>
       </div>
     </div>
