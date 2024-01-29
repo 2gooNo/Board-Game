@@ -31,21 +31,20 @@ export default function BoardGame() {
   }, []);
   console.log(effectiveCell);
 
-  function PlayerOneRoll() {
-    // console.log(turn);
-    // if (turn === "2") {
-    //   return;
-    // }
-    const randomNumber = Math.floor(Math.random() * 6) + 1;
+  function RandomNumber () {
+    return Math.floor(Math.random() * 6) + 1
+  }
+
+  function PlayerOneRoll() {``
+    const randomNumber = RandomNumber();
     setPlayerOnePosition((prev) => prev + randomNumber);
+    setDiceNumber(randomNumber);
     setTurn("2");
   }
   function PlayerTwoRoll() {
-    // if (turn === "1") {
-    //   return;
-    // }
-    const randomNumber = Math.floor(Math.random() * 6) + 1;
+    const randomNumber = RandomNumber();
     setPlayerTwoPosition((prev) => prev + randomNumber);
+    setDiceNumber2(randomNumber);
     setTurn("1");
   }
 
