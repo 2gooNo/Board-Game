@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./BoardGame.css";
 
 export default function BoardGame() {
@@ -9,9 +9,11 @@ export default function BoardGame() {
   const [playerTwoName, setPlayerTwoName] = useState();
   const [playerOneName, setPlayerOneName] = useState();
   const [effectiveCell, setEffectiveCell] = useState([]);
-  const [turn, setTurn] = useState(true);
+  // 1
+  const [turn, setTurn] = useState({ player: true, loading: false });
   const [diceNumber, setDiceNumber] = useState(1);
   const [diceNumber2, setDiceNumber2] = useState(1);
+  // const interval = useRef(0);
 
   function effectSell() {
     const effectiveCellArray = [];
@@ -29,28 +31,37 @@ export default function BoardGame() {
     setPlayerTwoName(namesArray[1]);
     effectSell();
   }, []);
-  console.log(effectiveCell);
 
   function RandomNumber() {
     return Math.floor(Math.random() * 6) + 1;
   }
 
-  function PlayerOneRoll() {
+  function PlayersRoll() {
     const randomNumber = RandomNumber();
-    if (turn == true) {
-      setPlayerOnePosition((prev) => prev + randomNumber);
-    } else {
-      setPlayerTwoPosition((prev) => prev + randomNumber);
+
+    // 2
+    if (turn.loading === true) {
+      return;
     }
-    setDiceNumber(randomNumber);
-    setTurn(!turn);
+    // 4
+    setTurn({ ...turn, loading: true });
+
+    setTimeout(() => {
+      if (turn.player == true) {
+        setPlayerOnePosition((prev) => prev + randomNumber);
+      } else {
+        setPlayerTwoPosition((prev) => prev + randomNumber);
+      }
+
+      setDiceNumber(randomNumber);
+      // 3
+      setTurn({ player: !turn.player, loading: false });
+    }, 600);
   }
-  // function PlayerTwoRoll() {
-  //   const randomNumber = RandomNumber();
-  //   setPlayerTwoPosition((prev) => prev + randomNumber);
-  //   setDiceNumber2(randomNumber);
-  //   setTurn("1");
-  // }
+
+  const handlePlay = () => {
+    // setTimeout(PlayersRoll, 1000);
+  };
 
   if (playerTwoPosition == 100 || playerTwoPosition > 100) {
     return (
@@ -78,7 +89,7 @@ export default function BoardGame() {
   useEffect(() => {
     effectiveCell.map((number) => {
       if (number == playerOnePosition || number == playerTwoPosition) {
-        if (turn == true) {
+        if (turn.player == true) {
           setPlayerOnePosition((prev) => prev - 3);
         } else {
           setPlayerTwoPosition((prev) => prev - 3);
@@ -91,19 +102,28 @@ export default function BoardGame() {
     <div className="body">
       <div className="absolute top-[100px] left-[100px] flex flex-col">
         <div className="gap-[10px] flex flex-row items-center ">
-          <div  className="tutorial"></div>
+          <div className="tutorial"></div>
           <h1 className="tutorial-text">Both Players</h1>
         </div>
         <div className="gap-[10px] flex flex-row items-center ">
-          <div style={{backgroundColor:"#c67d51"}} className="tutorial"></div>
+          <div
+            style={{ backgroundColor: "#c67d51" }}
+            className="tutorial"
+          ></div>
           <h1 className="tutorial-text">{playerOneName}</h1>
         </div>
-        <div  className="gap-[10px] flex flex-row items-center ">
-          <div style={{backgroundColor:"#a7715d"}} className="tutorial"></div>
+        <div className="gap-[10px] flex flex-row items-center ">
+          <div
+            style={{ backgroundColor: "#a7715d" }}
+            className="tutorial"
+          ></div>
           <h1 className="tutorial-text">{playerTwoName}</h1>
         </div>
         <div className="gap-[10px] flex flex-row items-center ">
-          <div style={{backgroundColor:"#C9582F"}} className="tutorial"></div>
+          <div
+            style={{ backgroundColor: "#C9582F" }}
+            className="tutorial"
+          ></div>
           <h1 className="tutorial-text">Fall 3 times</h1>
         </div>
       </div>
@@ -129,7 +149,7 @@ export default function BoardGame() {
             </div>
           </div>
 
-          <button className="roll-button" onClick={() => PlayerOneRoll()}>
+          <button className="roll-button" onClick={PlayersRoll}>
             Roll Dice
           </button>
           <div className="dice">
@@ -137,8 +157,7 @@ export default function BoardGame() {
               <div
                 className="side"
                 style={{
-                  backgroundColor:
-                    i + 1 === diceNumber ? "#9F9149" : "transparent",
+                  backgroundColor: i + 1 === diceNumber ? "#9F9149" : "#d1c6a9",
                 }}
               >
                 {i + 1}
