@@ -88,11 +88,27 @@ export default function BoardGame() {
   }, [turn]);
 
   return (
-    
     <div className="body">
+      <div className="absolute top-[100px] left-[100px] flex flex-col">
+        <div className="gap-[10px] flex flex-row items-center ">
+          <div  className="tutorial"></div>
+          <h1 className="tutorial-text">Both Players</h1>
+        </div>
+        <div className="gap-[10px] flex flex-row items-center ">
+          <div style={{backgroundColor:"#c67d51"}} className="tutorial"></div>
+          <h1 className="tutorial-text">{playerOneName}</h1>
+        </div>
+        <div  className="gap-[10px] flex flex-row items-center ">
+          <div style={{backgroundColor:"#a7715d"}} className="tutorial"></div>
+          <h1 className="tutorial-text">{playerTwoName}</h1>
+        </div>
+        <div className="gap-[10px] flex flex-row items-center ">
+          <div style={{backgroundColor:"#C9582F"}} className="tutorial"></div>
+          <h1 className="tutorial-text">Fall 3 times</h1>
+        </div>
+      </div>
       <div className="w-auto flex flex-col  h-screen  pl-[100px]">
         <div className="h-screen justify-center justify-center items-center flex flex-col gap-[10px]">
-          <h1>{playerOneName}</h1>
           <div className="board">
             <div className="board-row">
               {new Array(100).fill("").map((_, index) => (
@@ -105,7 +121,6 @@ export default function BoardGame() {
                       playerOnePosition,
                       playerTwoPosition
                     ),
-                    
                   }}
                 >
                   {index + 1}
@@ -113,7 +128,7 @@ export default function BoardGame() {
               ))}
             </div>
           </div>
-        
+
           <button className="roll-button" onClick={() => PlayerOneRoll()}>
             Roll Dice
           </button>
