@@ -88,7 +88,7 @@ export default function BoardGame() {
   }, [turn]);
 
   return (
-    // <div className="w-screen h-screen bg-black text-white flex flex-row items-center justify-center">
+    
     <div className="body">
       <div className="w-auto flex flex-col  h-screen  pl-[100px]">
         <div className="h-screen justify-center justify-center items-center flex flex-col gap-[10px]">
@@ -105,7 +105,7 @@ export default function BoardGame() {
                       playerOnePosition,
                       playerTwoPosition
                     ),
-                    // index === playerOnePosition ? "green" : "transparent",
+                    
                   }}
                 >
                   {index + 1}
@@ -113,6 +113,7 @@ export default function BoardGame() {
               ))}
             </div>
           </div>
+        
           <button className="roll-button" onClick={() => PlayerOneRoll()}>
             Roll Dice
           </button>
