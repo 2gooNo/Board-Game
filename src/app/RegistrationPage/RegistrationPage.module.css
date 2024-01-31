@@ -1,0 +1,52 @@
+.body {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(223, 216, 196);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: fixed;
+    color: white;
+  }
+  .enterName {
+    font-size: 80px;
+    color: white;
+    text-shadow: 8px 8px 9px #83641d;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    position: absolute;
+    top: 250px;
+  }
+  .flex {
+    display: flex;
+    gap: 15px;
+  }
+  .playerName {
+    padding-left: 10px;
+    color: white;
+    width: 230px;
+    height: 50px;
+    background-color: rgb(187, 175, 131);
+    border-radius: 10px;
+    border-width: 2px;
+    margin-bottom: 100px;
+  }
+  .playerName::placeholder {
+    color: rgb(255, 255, 255);
+  }
+  .play {
+    padding-left: 5px;
+    color: white;
+    width: 300px;
+    height: 60px;
+    background-color:rgb(114, 102, 60);
+    border-radius: 12px;
+    border-width: 2px;
+    font-size: 20px;
+    transition: font-size 0.5s;
+    transition: background-color 0.5;
+  }
+  .play:hover{
+    font-size: 23px;
+    background-color:rgb(134, 120, 71);
+  }

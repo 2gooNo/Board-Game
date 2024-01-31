@@ -9,13 +9,13 @@ export default function BoardGame() {
   const [playerTwoName, setPlayerTwoName] = useState();
   const [playerOneName, setPlayerOneName] = useState();
   const [effectiveCell, setEffectiveCell] = useState([]);
-  const [turn, setTurn] = useState("1");
+  const [turn, setTurn] = useState(true);
   const [diceNumber, setDiceNumber] = useState(1);
   const [diceNumber2, setDiceNumber2] = useState(1);
 
   function effectSell() {
     const effectiveCellArray = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       const randomNumber = Math.floor(Math.random() * 100) + 1;
       effectiveCellArray.push(randomNumber);
     }
@@ -31,22 +31,26 @@ export default function BoardGame() {
   }, []);
   console.log(effectiveCell);
 
-  function RandomNumber () {
-    return Math.floor(Math.random() * 6) + 1
+  function RandomNumber() {
+    return Math.floor(Math.random() * 6) + 1;
   }
 
-  function PlayerOneRoll() {``
+  function PlayerOneRoll() {
     const randomNumber = RandomNumber();
-    setPlayerOnePosition((prev) => prev + randomNumber);
+    if (turn == true) {
+      setPlayerOnePosition((prev) => prev + randomNumber);
+    } else {
+      setPlayerTwoPosition((prev) => prev + randomNumber);
+    }
     setDiceNumber(randomNumber);
-    setTurn("2");
+    setTurn(!turn);
   }
-  function PlayerTwoRoll() {
-    const randomNumber = RandomNumber();
-    setPlayerTwoPosition((prev) => prev + randomNumber);
-    setDiceNumber2(randomNumber);
-    setTurn("1");
-  }
+  // function PlayerTwoRoll() {
+  //   const randomNumber = RandomNumber();
+  //   setPlayerTwoPosition((prev) => prev + randomNumber);
+  //   setDiceNumber2(randomNumber);
+  //   setTurn("1");
+  // }
 
   if (playerTwoPosition == 100 || playerTwoPosition > 100) {
     return (
@@ -71,17 +75,23 @@ export default function BoardGame() {
       </div>
     );
   }
-
-  effectiveCell.map((number) => {
-    if (number == playerOnePosition) {
-      setPlayerOnePosition(playerOnePosition - 3);
-    }
-  });
+  useEffect(() => {
+    effectiveCell.map((number) => {
+      if (number == playerOnePosition || number == playerTwoPosition) {
+        if (turn == true) {
+          setPlayerOnePosition((prev) => prev - 3);
+        } else {
+          setPlayerTwoPosition((prev) => prev - 3);
+        }
+      }
+    });
+  }, [turn]);
 
   return (
-    <div className="w-screen h-screen bg-black text-white flex flex-row items-center justify-center">
-      <div className="border-r-[1px]  w-[50%] h-screen  pl-[100px] ">
-        <div className="h-screen justify-center flex flex-col gap-[10px]">
+    // <div className="w-screen h-screen bg-black text-white flex flex-row items-center justify-center">
+    <div className="body">
+      <div className="w-auto flex flex-col  h-screen  pl-[100px]">
+        <div className="h-screen justify-center justify-center items-center flex flex-col gap-[10px]">
           <h1>{playerOneName}</h1>
           <div className="board">
             <div className="board-row">
@@ -92,7 +102,8 @@ export default function BoardGame() {
                     backgroundColor: CellColor(
                       index,
                       effectiveCell,
-                      playerOnePosition
+                      playerOnePosition,
+                      playerTwoPosition
                     ),
                     // index === playerOnePosition ? "green" : "transparent",
                   }}
@@ -102,73 +113,38 @@ export default function BoardGame() {
               ))}
             </div>
           </div>
-          <button
-            disabled={turn === "2"}
-            className="roll-button"
-            onClick={() => PlayerOneRoll()}
-          >
+          <button className="roll-button" onClick={() => PlayerOneRoll()}>
             Roll Dice
           </button>
           <div className="dice">
-          {Array.from({ length: 6 }, (_, i) => (
-            <div
-              className="side"
-              style={{
-                backgroundColor: i + 1 === diceNumber ? "green" : "transparent",
-              }}
-            >
-              {i + 1}
-            </div>
-          ))}
-        </div>
-        </div>
-      </div>
-      <div className="w-[50%] h-screen  pr-[100px] ">
-        <div className="items-end h-screen justify-center flex flex-col gap-[10px]">
-          <h1>{playerTwoName}</h1>
-          <div className="board">
-            <div className="board-row">
-              {new Array(100).fill("").map((_, index) => (
-                <div
-                  className="board-cell"
-                  style={{
-                    backgroundColor:
-                      index === playerTwoPosition ? "green" : "transparent",
-                  }}
-                >
-                  {index + 1}
-                </div>
-              ))}
-            </div>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div
+                className="side"
+                style={{
+                  backgroundColor:
+                    i + 1 === diceNumber ? "#9F9149" : "transparent",
+                }}
+              >
+                {i + 1}
+              </div>
+            ))}
           </div>
-          <button
-            disabled={turn === "1"}
-            className="roll-button"
-            onClick={() => PlayerTwoRoll()}
-          >
-            Roll Dice
-          </button>
-          <div className="dice">
-          {Array.from({ length: 6 }, (_, i) => (
-            <div
-              className="side"
-              style={{
-                backgroundColor: i + 1 === diceNumber2 ? "purple" : "transparent",
-              }}
-            >
-              {i + 1}
-            </div>
-          ))}
-        </div>
         </div>
       </div>
     </div>
   );
 }
-function CellColor(index, effectiveCell, playerOnePosition) {
-  if (index == playerOnePosition) {
-    return "green";
+function CellColor(index, effectiveCell, playerOnePosition, playerTwoPosition) {
+  if (index == playerOnePosition && index == playerTwoPosition) {
+    return "#4B1A08";
+    // dwhtsal
+  } else if (index == playerOnePosition) {
+    return "#c67d51";
+    //player1
+  } else if (index == playerTwoPosition) {
+    return "#a7715d";
+    //player2
   } else if (effectiveCell.includes(index)) {
-    return "red";
+    return "#C9582F";
   }
 }
