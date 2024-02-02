@@ -12,12 +12,10 @@ export default function BoardGame() {
   // 1
   const [turn, setTurn] = useState({ player: true, loading: false });
   const [diceNumber, setDiceNumber] = useState(1);
-  const [diceNumber2, setDiceNumber2] = useState(1);
-  // const interval = useRef(0);
 
   function effectSell() {
     const effectiveCellArray = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 20; i++) {
       const randomNumber = Math.floor(Math.random() * 100) + 1;
       effectiveCellArray.push(randomNumber);
     }
@@ -38,29 +36,50 @@ export default function BoardGame() {
 
   function PlayersRoll() {
     const randomNumber = RandomNumber();
-
-    // 2
     if (turn.loading === true) {
       return;
     }
-    // 4
     setTurn({ ...turn, loading: true });
 
-    setTimeout(() => {
-      if (turn.player == true) {
-        setPlayerOnePosition((prev) => prev + randomNumber);
-      } else {
-        setPlayerTwoPosition((prev) => prev + randomNumber);
-      }
-
-      setDiceNumber(randomNumber);
-      // 3
-      setTurn({ player: !turn.player, loading: false });
-    }, 600);
+    setDiceNumber(randomNumber);
+    moverForward(randomNumber);
   }
 
-  const handlePlay = () => {
-    // setTimeout(PlayersRoll, 1000);
+  const moverForward = (step) => {
+    let temp = 0;
+
+    const forwardInterval = setInterval(() => {
+      if (temp === step) {
+        setTurn({ player: !turn.player, loading: false });
+        return clearInterval(forwardInterval);
+      }
+
+      temp++;
+
+      if (turn.player == true) {
+        setPlayerOnePosition((prev) => prev + 1);
+      } else {
+        setPlayerTwoPosition((prev) => prev + 1);
+      }
+    }, 600);
+  };
+  const moverBackward = (step, whichPlayer) => {
+    let temp = 0;
+
+    const backwardInterval = setInterval(() => {
+      if (temp === step) {
+        setTurn({ ...turn, loading: false });
+        return clearInterval(backwardInterval);
+      }
+
+      temp++;
+
+      if (whichPlayer === "one") {
+        setPlayerOnePosition((prev) => (prev - 1 < 0 ? 0 : prev - 1));
+      } else {
+        setPlayerTwoPosition((prev) => (prev - 1 < 0 ? 0 : prev - 1));
+      }
+    }, 300);
   };
 
   if (playerTwoPosition == 100 || playerTwoPosition > 100) {
@@ -87,15 +106,18 @@ export default function BoardGame() {
     );
   }
   useEffect(() => {
-    effectiveCell.map((number) => {
-      if (number == playerOnePosition || number == playerTwoPosition) {
-        if (turn.player == true) {
-          setPlayerOnePosition((prev) => prev - 3);
-        } else {
-          setPlayerTwoPosition((prev) => prev - 3);
+    if (!turn.loading) {
+      effectiveCell.map((number) => {
+        if (number == playerOnePosition) {
+          setTurn({ ...turn, loading: true });
+          moverBackward(3, "one");
         }
-      }
-    });
+        if (number == playerTwoPosition) {
+          setTurn({ ...turn, loading: true });
+          moverBackward(3, "two");
+        }
+      });
+    }
   }, [turn]);
 
   return (
