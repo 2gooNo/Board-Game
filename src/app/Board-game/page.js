@@ -15,7 +15,7 @@ export default function BoardGame() {
 
   function effectSell() {
     const effectiveCellArray = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i <=5; i++) {
       const randomNumber = Math.floor(Math.random() * 100) + 1;
       effectiveCellArray.push(randomNumber);
     }
