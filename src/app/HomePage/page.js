@@ -86,13 +86,13 @@ export default function HomePage() {
           </Link>
 
           <div className={style.chips}>
-            <div className={style.chip}>
+            <div className={style.chip} style={{ "--accent": "#f5d24c" }}>
               <span className={style.chipIcon}>🏁</span> 100 нүд
             </div>
-            <div className={style.chip}>
+            <div className={style.chip} style={{ "--accent": "#3a86ff" }}>
               <span className={style.chipIcon}>👥</span> 2 тоглогч
             </div>
-            <div className={style.chip}>
+            <div className={style.chip} style={{ "--accent": "#ee6c57" }}>
               <span className={style.chipIcon}>⚡</span> 6 нууц урхи
             </div>
           </div>
