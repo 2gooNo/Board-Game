@@ -41,7 +41,7 @@ export default function Information() {
                   setNames((prev) => ({ ...prev, Player1: e.target.value }))
                 }
                 className={style.input}
-                placeholder="Жишээ: Даваа"
+                placeholder="Жишээ: Бат"
                 maxLength={14}
               />
             </div>
