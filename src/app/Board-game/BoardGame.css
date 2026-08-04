@@ -23,8 +23,9 @@
 }
 
 .brand img {
-  height: 62px;
+  height: 108px;
   width: auto;
+  margin: -18px 0;
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.7));
 }
 

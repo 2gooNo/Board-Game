@@ -7,12 +7,12 @@ import "./BoardGame.css";
 /* ---------------- board geometry ---------------- */
 
 const VIEW_W = 1120;
-const VIEW_H = 880;
+const VIEW_H = 810;
 
 const ROWS = 5;
 const X_START = 150;
 const X_END = 970;
-const Y_START = 120;
+const Y_START = 105;
 const ROW_GAP = 158;
 const TURN_R = ROW_GAP / 2;
 const WAVE = 34;
