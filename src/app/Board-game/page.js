@@ -1,27 +1,102 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import "./BoardGame.css";
 
+/* ---------------- board geometry ---------------- */
+
+const VIEW_W = 1120;
+const VIEW_H = 880;
+
+const ROWS = 5;
+const X_START = 150;
+const X_END = 970;
+const Y_START = 120;
+const ROW_GAP = 158;
+const TURN_R = ROW_GAP / 2;
+const WAVE = 34;
+
+// dense centreline of the winding track
+function buildCentreline() {
+  const pts = [];
+
+  for (let row = 0; row < ROWS; row++) {
+    const dir = row % 2 === 0 ? 1 : -1;
+    const y = Y_START + row * ROW_GAP;
+    const from = dir === 1 ? X_START : X_END;
+    const to = dir === 1 ? X_END : X_START;
+
+    // wavy straight-away — the sin(pi*t) factor keeps both ends flat
+    const steps = 140;
+    for (let s = row === 0 ? 0 : 1; s <= steps; s++) {
+      const t = s / steps;
+      pts.push({
+        x: from + (to - from) * t,
+        y: y + WAVE * Math.sin(2 * Math.PI * t) * Math.sin(Math.PI * t),
+      });
+    }
+
+    // half-circle U-turn into the next row
+    if (row < ROWS - 1) {
+      const cy = y + TURN_R;
+      const turnSteps = 70;
+      for (let s = 1; s <= turnSteps; s++) {
+        const a = -Math.PI / 2 + (Math.PI * s) / turnSteps;
+        pts.push({
+          x: to + dir * TURN_R * Math.cos(a),
+          y: cy + TURN_R * Math.sin(a),
+        });
+      }
+    }
+  }
+
+  return pts;
+}
+
+// walk the centreline and drop `count` evenly spaced tiles with their tilt
+function spaceAlong(pts, count) {
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) {
+    cum.push(
+      cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y)
+    );
+  }
+  const total = cum[cum.length - 1];
+
+  const out = [];
+  let j = 0;
+  for (let k = 0; k < count; k++) {
+    const target = (total * k) / (count - 1);
+    while (j < cum.length - 2 && cum[j + 1] < target) j++;
+
+    const p0 = pts[j];
+    const p1 = pts[j + 1];
+    const seg = cum[j + 1] - cum[j] || 1;
+    const f = (target - cum[j]) / seg;
+
+    out.push({
+      x: p0.x + (p1.x - p0.x) * f,
+      y: p0.y + (p1.y - p0.y) * f,
+      angle: (Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180) / Math.PI,
+    });
+  }
+  return out;
+}
+
 const TILE_COLORS = [
-  "var(--tile-1)",
-  "var(--tile-2)",
-  "var(--tile-3)",
-  "var(--tile-4)",
-  "var(--tile-5)",
+  "#b79ce0",
+  "#9ed36a",
+  "#f2a64c",
+  "#f4afc2",
+  "#ee6c57",
+  "#3fae84",
+  "#a9dceb",
+  "#f5d24c",
 ];
 
-// classic snake layout: bottom-left is cell 1, every second row runs backwards
-const BOARD_ORDER = (() => {
-  const order = [];
-  for (let row = 9; row >= 0; row--) {
-    const cells = Array.from({ length: 10 }, (_, col) => row * 10 + col);
-    if (row % 2 === 1) cells.reverse();
-    order.push(...cells);
-  }
-  return order;
-})();
+const TILE_W = 46;
+const TILE_H = 40;
 
 const DICE_PIPS = {
   1: [4],
@@ -41,6 +116,14 @@ export default function BoardGame() {
   // 1
   const [turn, setTurn] = useState({ player: true, loading: false });
   const [diceNumber, setDiceNumber] = useState(1);
+
+  const { trackPath, tiles } = useMemo(() => {
+    const centre = buildCentreline();
+    return {
+      trackPath: centre.map((p, i) => `${i ? "L" : "M"}${p.x} ${p.y}`).join(" "),
+      tiles: spaceAlong(centre, 100),
+    };
+  }, []);
 
   function effectSell() {
     const effectiveCellArray = [];
@@ -129,9 +212,9 @@ export default function BoardGame() {
 
   const winner =
     playerOnePosition >= 100
-      ? { name: playerOneName, label: "Player 1", color: "var(--p1)" }
+      ? { name: playerOneName, label: "Player 1" }
       : playerTwoPosition >= 100
-      ? { name: playerTwoName, label: "Player 2", color: "var(--p2)" }
+      ? { name: playerTwoName, label: "Player 2" }
       : null;
 
   if (winner) {
@@ -167,6 +250,15 @@ export default function BoardGame() {
   const activeColor = turn.player ? "var(--p1)" : "var(--p2)";
   const activeName = turn.player ? playerOneName : playerTwoName;
 
+  const sameCell = playerOnePosition === playerTwoPosition;
+  const pawnSpots = [
+    { pos: playerOnePosition, color: "#e4572e", name: playerOneName, side: -1 },
+    { pos: playerTwoPosition, color: "#3a86ff", name: playerTwoName, side: 1 },
+  ];
+
+  const startTile = tiles[0];
+  const endTile = tiles[tiles.length - 1];
+
   return (
     <main className="table-shell">
       <div className="layer game-page">
@@ -192,49 +284,131 @@ export default function BoardGame() {
 
         <div className="game-grid">
           <section className="board-frame">
-            <div className="board">
-              {BOARD_ORDER.map((index) => {
-                const isP1 = index === playerOnePosition;
-                const isP2 = index === playerTwoPosition;
+            <svg
+              className="board-svg"
+              viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+              role="img"
+              aria-label="Тоглоомын зам"
+            >
+              <defs>
+                <filter id="tileShadow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feDropShadow
+                    dx="0"
+                    dy="3"
+                    stdDeviation="3"
+                    floodColor="#000"
+                    floodOpacity="0.45"
+                  />
+                </filter>
+                <filter id="pawnShadow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feDropShadow
+                    dx="0"
+                    dy="4"
+                    stdDeviation="4"
+                    floodColor="#000"
+                    floodOpacity="0.6"
+                  />
+                </filter>
+              </defs>
+
+              {/* the road under the tiles */}
+              <path className="track-shadow" d={trackPath} />
+              <path className="track-line" d={trackPath} />
+
+              {/* START / FINISH markers */}
+              <g className="marker">
+                <rect
+                  x={startTile.x - 145}
+                  y={startTile.y - 27}
+                  width={116}
+                  height={54}
+                  rx={16}
+                  fill="#ee6c57"
+                />
+                <text x={startTile.x - 87} y={startTile.y + 1}>
+                  START
+                </text>
+              </g>
+              <g className="marker">
+                <rect
+                  x={endTile.x + 32}
+                  y={endTile.y - 27}
+                  width={124}
+                  height={54}
+                  rx={16}
+                  fill="#f2a64c"
+                />
+                <text x={endTile.x + 94} y={endTile.y + 1}>
+                  FINISH
+                </text>
+              </g>
+
+              {/* the 100 tiles */}
+              {tiles.map((tile, index) => {
                 const isTrap = effectiveCell.includes(index);
                 const isFinish = index === 99;
-                const hasPawn = isP1 || isP2;
+                const fill = isTrap
+                  ? "#c1121f"
+                  : isFinish
+                  ? "#f6e3a6"
+                  : TILE_COLORS[index % TILE_COLORS.length];
 
                 return (
-                  <div
-                    key={index}
-                    className={`board-cell${isTrap ? " trap" : ""}${
-                      isFinish ? " finish" : ""
-                    }`}
-                    style={{ "--tile": TILE_COLORS[index % TILE_COLORS.length] }}
-                  >
-                    {index + 1}
-
-                    {!hasPawn && isTrap && <span className="cell-mark">⚡</span>}
-                    {!hasPawn && isFinish && <span className="cell-mark">🏁</span>}
-
-                    {hasPawn && (
-                      <div className="pawns">
-                        {isP1 && (
-                          <span
-                            className={`pawn${isP2 ? " small" : ""}`}
-                            style={{ "--pawn": "var(--p1)" }}
-                            title={playerOneName}
-                          />
-                        )}
-                        {isP2 && (
-                          <span
-                            className={`pawn${isP1 ? " small" : ""}`}
-                            style={{ "--pawn": "var(--p2)" }}
-                            title={playerTwoName}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <g key={index} className="tile">
+                    <g transform={`translate(${tile.x} ${tile.y}) rotate(${tile.angle})`}>
+                      <rect
+                        x={-TILE_W / 2}
+                        y={-TILE_H / 2}
+                        width={TILE_W}
+                        height={TILE_H}
+                        rx={11}
+                        fill={fill}
+                        filter="url(#tileShadow)"
+                      />
+                    </g>
+                    <text
+                      x={tile.x}
+                      y={tile.y + 1}
+                      className={isTrap ? "tile-num on-dark" : "tile-num"}
+                    >
+                      {index + 1}
+                    </text>
+                  </g>
                 );
               })}
-            </div>
+
+              {/* pawns */}
+              {pawnSpots.map((p) => {
+                const tile = tiles[Math.min(p.pos, 99)];
+                const rad = (tile.angle * Math.PI) / 180;
+                const off = sameCell ? 13 : 0;
+                const cx = tile.x - Math.sin(rad) * off * p.side;
+                const cy = tile.y + Math.cos(rad) * off * p.side;
+
+                return (
+                  <g
+                    key={p.color}
+                    className="board-pawn"
+                    transform={`translate(${cx} ${cy})`}
+                  >
+                    <title>{p.name}</title>
+                    <circle
+                      r={sameCell ? 12 : 16}
+                      fill={p.color}
+                      stroke="#fff"
+                      strokeWidth={3.5}
+                      filter="url(#pawnShadow)"
+                    />
+                    <circle
+                      cx={-4}
+                      cy={-5}
+                      r={sameCell ? 3.5 : 4.5}
+                      fill="rgba(255,255,255,0.55)"
+                    />
+                  </g>
+                );
+              })}
+            </svg>
           </section>
 
           <aside className="sidebar">
@@ -255,9 +429,7 @@ export default function BoardGame() {
                 <div className="bar">
                   <div
                     className="bar-fill"
-                    style={{
-                      width: `${Math.min(playerOnePosition, 100)}%`,
-                    }}
+                    style={{ width: `${Math.min(playerOnePosition, 100)}%` }}
                   />
                 </div>
               </div>
@@ -276,9 +448,7 @@ export default function BoardGame() {
                 <div className="bar">
                   <div
                     className="bar-fill"
-                    style={{
-                      width: `${Math.min(playerTwoPosition, 100)}%`,
-                    }}
+                    style={{ width: `${Math.min(playerTwoPosition, 100)}%` }}
                   />
                 </div>
               </div>
@@ -311,26 +481,20 @@ export default function BoardGame() {
             <div className="panel">
               <h2 className="panel-title">Тайлбар</h2>
               <div className="legend-row">
-                <span className="legend-swatch" style={{ "--sw": "var(--p1)" }} />
+                <span className="legend-swatch round" style={{ "--sw": "#e4572e" }} />
                 {playerOneName}
               </div>
               <div className="legend-row">
-                <span className="legend-swatch" style={{ "--sw": "var(--p2)" }} />
+                <span className="legend-swatch round" style={{ "--sw": "#3a86ff" }} />
                 {playerTwoName}
               </div>
               <div className="legend-row">
-                <span
-                  className="legend-swatch"
-                  style={{ "--sw": "linear-gradient(160deg, #6d0d16, #c1121f)" }}
-                />
-                ⚡ Урхи — 3 нүд ухрана
+                <span className="legend-swatch" style={{ "--sw": "#c1121f" }} />
+                Улаан нүд — урхи, 3 нүд ухрана
               </div>
               <div className="legend-row">
-                <span
-                  className="legend-swatch"
-                  style={{ "--sw": "linear-gradient(135deg, #f6e3a6, #b08c34)" }}
-                />
-                🏁 Төгсгөл — 100 дахь нүд
+                <span className="legend-swatch" style={{ "--sw": "#f6e3a6" }} />
+                🏁 100 дахь нүд — төгсгөл
               </div>
             </div>
           </aside>
