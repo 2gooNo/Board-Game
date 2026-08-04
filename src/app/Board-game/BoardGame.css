@@ -411,11 +411,7 @@
   .sidebar {
     order: -1;
   }
-  .board-cell {
-    font-size: 11px;
-  }
-  .pawn {
-    width: 20px;
-    height: 20px;
+  .board-frame {
+    padding: 14px;
   }
 }
